@@ -1,13 +1,15 @@
 const amqp = require('amqplib');
 
-amqp.connect('amqp://localhost').then(function(conn) {
+const queueName = process.env.QUEUE_NAME;
+
+amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`).then(function(conn) {
   process.once('SIGINT', function() { conn.close(); });
   return conn.createChannel().then(function(ch) {
 
-    var ok = ch.assertQueue('hello', {durable: false});
+    var ok = ch.assertQueue(queueName, {durable: false});
 
     ok = ok.then(function(_qok) {
-      return ch.consume('hello', function(msg) {
+      return ch.consume(queueName, function(msg) {
         console.log(" [x] Received '%s'", msg.content.toString());
       }, {noAck: true});
     });
