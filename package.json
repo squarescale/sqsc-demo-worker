@@ -1,0 +1,14 @@
+{
+  "name": "sqsc-demo-worker",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:squarescale/sqsc-demo-worker.git",
+  "author": "Romain Lenoel <romain@sogilis.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.5.1"
+  }
+}
