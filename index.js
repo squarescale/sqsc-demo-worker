@@ -7,34 +7,34 @@ const Response = db.Response;
 const processingQueueName = process.env.PROCESSING_QUEUE_NAME;
 const readingQueueName = process.env.READING_QUEUE_NAME;
 
-db.sequelize.sync().then(() => {
+async function main() {
+  try {
+    await db.sequelize.sync();
 
-  amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`).then(function(conn) {
-    process.once('SIGINT', function() { conn.close(); });
-    return conn.createChannel().then(function(ch) {
-      ch.assertQueue(processingQueueName, {durable: true})
-        .then(function() { ch.prefetch(1); })
-        .then(function() {
-          ch.consume(processingQueueName, doWork, {noAck: false});
-          console.log(" [*] Waiting for messages. To exit press CTRL+C");
-        });
-      
+    const connection = await amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`);
+    
+    process.once('SIGINT', () => connection.close() );
 
-      function doWork(msg) {
-        let body = msg.content.toString();
-        console.log(" [x] Received '%s'", body);
+    const channel = await connection.createChannel();
+    await channel.assertQueue(processingQueueName, {durable: true});
+    await channel.prefetch(1);
+    channel.consume(processingQueueName, doWork, {noAck: false});
+    console.log(" [*] Waiting for messages. To exit press CTRL+C");
 
-        Response.create({ container: os.hostname(), result: body}).then(response => {
-          console.log(`[x] Wrote response to DB with id ${response.id}`);
-          ch.ack(msg);
-          ch.assertQueue(readingQueueName, {durable: true})
-            .then(() => {
-              ch.sendToQueue(readingQueueName, Buffer.from(response.id.toString()));
-            });
-        });
-      }
-    });
-  }).catch(console.warn);
+    async function doWork(msg) {
+      let body = msg.content.toString();
+      console.log(" [x] Received '%s'", body);
 
-})
+      const response = await Response.create({ container: os.hostname(), result: body});
+      console.log(`[x] Wrote response to DB with id ${response.id}`);
+      await channel.assertQueue(readingQueueName, {durable: true});
+      channel.sendToQueue(readingQueueName, Buffer.from(response.id.toString()));
+      channel.ack(msg);
+    }
 
+  } catch(e) {
+    console.warn(e);
+  }
+}
+
+main();
