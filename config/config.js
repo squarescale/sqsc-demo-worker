@@ -4,34 +4,19 @@ var path = require('path'),
 
 var config = {
   development: {
-    root: rootPath,
-    app: {
-      name: 'sqsc-demo-app'
-    },
-    port: process.env.PORT || 3000,
-
-    db: 'sqlite://localhost/sqsc-demo-app'
-  },
-
-  test: {
-    root: rootPath,
-    app: {
-      name: 'sqsc-demo-app'
-    },
-    port: process.env.PORT || 3000,
-    db: 'sqlite://localhost/sqsc-demo-app-test'
+    db: {
+      dialect: 'sqlite'
+    }
   },
 
   production: {
-    root: rootPath,
-    app: {
-      name: 'sqsc-demo-app'
-    },
-    port: process.env.PORT || 3000,
-    db: 'postgres://' +
-      process.env.DB_USER + ':' + process.env.DB_PASSWORD +
-      '@' + process.env.DB_HOST + ':5432' +
-      '/' + process.env.DB_DATABASE
+    db: {
+      dialect: 'postgres',
+      host: process.env.DB_HOST,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE
+    }
   }
 };
 
