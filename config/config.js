@@ -13,9 +13,9 @@ var config = {
     db: {
       dialect: 'postgres',
       host: process.env.DB_HOST,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE
+      username: process.env.COMMON_DB_USERNAME,
+      password: process.env.COMMON_DB_PASSWORD,
+      database: process.env.COMMON_DB_NAME
     }
   }
 };
