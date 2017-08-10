@@ -9,6 +9,6 @@ COPY package.json .
 RUN yarn install
 
 # Install app source
-COPY index.js .
+COPY . .
 
 CMD ["npm", "start"]

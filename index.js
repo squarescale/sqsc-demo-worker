@@ -1,21 +1,40 @@
+const os = require('os');
 const amqp = require('amqplib');
+const config = require('./config/config');
+const db = require('./app/models');
+const Response = db.Response;
 
-const queueName = process.env.QUEUE_NAME;
+const processingQueueName = process.env.PROCESSING_QUEUE_NAME;
+const readingQueueName = process.env.READING_QUEUE_NAME;
 
-amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`).then(function(conn) {
-  process.once('SIGINT', function() { conn.close(); });
-  return conn.createChannel().then(function(ch) {
+async function main() {
+  try {
+    await db.sequelize.sync();
 
-    var ok = ch.assertQueue(queueName, {durable: false});
+    const connection = await amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`);
+    
+    process.once('SIGINT', () => connection.close() );
 
-    ok = ok.then(function(_qok) {
-      return ch.consume(queueName, function(msg) {
-        console.log(" [x] Received '%s'", msg.content.toString());
-      }, {noAck: true});
-    });
+    const channel = await connection.createChannel();
+    await channel.assertQueue(processingQueueName, {durable: true});
+    await channel.prefetch(1);
+    channel.consume(processingQueueName, doWork, {noAck: false});
+    console.log(" [*] Waiting for messages. To exit press CTRL+C");
 
-    return ok.then(function(_consumeOk) {
-      console.log(' [*] Waiting for messages. To exit press CTRL+C');
-    });
-  });
-}).catch(console.warn);
+    async function doWork(msg) {
+      let body = msg.content.toString();
+      console.log(" [x] Received '%s'", body);
+
+      const response = await Response.create({ container: os.hostname(), result: body});
+      console.log(`[x] Wrote response to DB with id ${response.id}`);
+      await channel.assertQueue(readingQueueName, {durable: true});
+      channel.sendToQueue(readingQueueName, Buffer.from(response.id.toString()));
+      channel.ack(msg);
+    }
+
+  } catch(e) {
+    console.warn(e);
+  }
+}
+
+main();
