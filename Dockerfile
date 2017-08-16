@@ -1,4 +1,4 @@
-FROM node:8.2-alpine
+FROM node:8.4
 
 # Create app directory
 RUN mkdir -p /usr/src/app
@@ -9,6 +9,10 @@ COPY package.json .
 RUN yarn install
 
 # Install app source
-COPY . .
+RUN mkdir app
+COPY ./app ./app
+RUN mkdir config
+COPY ./config ./config
+COPY index.js .
 
 CMD ["npm", "start"]
