@@ -11,11 +11,12 @@ var config = {
 
   production: {
     db: {
+      logging: false,
       dialect: 'postgres',
       host: process.env.DB_HOST,
-      username: process.env.COMMON_DB_USERNAME,
-      password: process.env.COMMON_DB_PASSWORD,
-      database: process.env.COMMON_DB_NAME
+      username: process.env.COMMON_DB_USERNAME || "postgres",
+      password: process.env.COMMON_DB_PASSWORD || "MeXypcQ5eavgEeCaMkyAzVI9r2cLgbXk",
+      database: process.env.COMMON_DB_NAME || "postgres",
     }
   }
 };

@@ -4,6 +4,10 @@ FROM node:8.4
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
+RUN set -ex \
+  && apt-get update \
+  && apt-get install -y git python libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
+
 # Install app dependencies
 COPY package.json .
 RUN yarn install
