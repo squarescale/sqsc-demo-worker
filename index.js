@@ -11,14 +11,43 @@ const processingQueueName = process.env.PROCESSING_QUEUE_NAME || 'processingQueu
 const readingQueueName = process.env.READING_QUEUE_NAME || 'readingQueue';
 const rabbitMQUrl = process.env.RABBITMQ_HOST || 'rabbitmq.localhost';
 
+async function handleQueueConnection() {
+  // try {
+  const connection = await amqp.connect(`amqp://` + rabbitMQUrl);
+  process.once('SIGINT', () => connection.close());
+  const channel = await connection.createChannel();
+  if (channel)
+    return channel;
+  else
+    throw new Error("Channel is undefined");
+  // } catch (err) {
+  //   console.warn(err);
+  //   setTimeout(handleQueueConnection, 1000);
+  // }
+}
+
+async function handleDatabaseConnection() {
+  // try {
+  await db.sequelize.sync();
+  // } catch (err) {
+  //   console.warn(err);
+  //   setTimeout(handleDatabaseConnection, 1000);
+  // }
+}
+
 async function start() {
   try {
-    await db.sequelize.sync();
+    const promise = await handleDatabaseConnection();
+    const channel = await handleQueueConnection();
+    startWorker(channel);
+  } catch (err) {
+    console.warn(err);
+    setTimeout(start, 1000);
+  }
+}
 
-    const connection = await amqp.connect(`amqp://` + rabbitMQUrl);
-
-    process.once('SIGINT', () => connection.close());
-
+async function startWorker(channel) {
+  try {
     const channel = await connection.createChannel();
     await channel.assertQueue(processingQueueName, {
       durable: true
