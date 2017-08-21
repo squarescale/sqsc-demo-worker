@@ -41,7 +41,7 @@ async function start() {
     const channel = await handleQueueConnection();
     startWorker(channel);
   } catch (err) {
-    console.warn(err);
+    console.warn("[ERROR] "+err.message);
     setTimeout(start, 1000);
   }
 }
