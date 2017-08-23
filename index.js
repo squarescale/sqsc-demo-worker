@@ -28,7 +28,7 @@ async function handleQueueConnection() {
 }
 
 async function handleDatabaseConnection() {
-  await db.sequelize.sync();
+  await db.sequelize.sync({alter: true});
 }
 
 async function initQueues(channel) {
