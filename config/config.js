@@ -1,6 +1,6 @@
 var path = require('path'),
   rootPath = path.normalize(__dirname + '/..'),
-  
+
   env = process.env.NODE_ENV || 'development';
 
 var config = {
@@ -9,7 +9,11 @@ var config = {
       dialect: 'sqlite'
     }
   },
-
+  test: {
+    db: {
+      dialect: 'sqlite'
+    }
+  },
   production: {
     db: {
       logging: false,
