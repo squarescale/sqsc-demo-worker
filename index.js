@@ -68,7 +68,8 @@ async function start() {
         stepX: data.stepX,
         stepY: data.stepY,
         iter: data.iter,
-        result: Mandelbrot.get(data)
+        result: Mandelbrot.get(data),
+        clientToken: data.clientToken
       });
       
       console.log(`worker - [x] Wrote response to DB with id ${response.id}`);
