@@ -1,4 +1,4 @@
-FROM node:8.4
+FROM node:8-stretch
 
 # Create app directory
 RUN mkdir -p /usr/src/app
